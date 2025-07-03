@@ -62,3 +62,32 @@ def seed_database():
         ]
         db.session.add_all(heroes)
         db.session.flush()
+        print("Creating hero-power associations...")
+        strengths = ["Strong", "Weak", "Average"]
+        hero_powers = []
+        
+        for hero in heroes:
+            num_powers = randint(1, 4)
+            selected_powers = sample(powers, num_powers)
+            
+            for power in selected_powers:
+                existing = db.session.query(HeroPower).filter_by(
+                    hero_id=hero.id, power_id=power.id
+                ).first()
+                
+                if not existing:
+                    hero_powers.append(
+                        HeroPower(hero=hero, power=power, strength=rc(strengths))
+                    )
+        
+        db.session.add_all(hero_powers)
+        db.session.commit()
+
+        print(f"Seeding complete!")
+        print(f"Created {len(users)} users")
+        print(f"Created {len(powers)} powers")
+        print(f"Created {len(heroes)} heroes")
+        print(f"Created {len(hero_powers)} hero-power associations")
+
+if __name__ == '__main__':
+    seed_database()
