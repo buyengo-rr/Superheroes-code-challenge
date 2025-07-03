@@ -30,3 +30,52 @@ class User(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'<User {self.id}: {self.name}>'
+    class Hero(db.Model, SerializerMixin):
+    __tablename__ = 'heroes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    super_name = db.Column(db.String(100), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    hero_powers = db.relationship('HeroPower', backref='hero', cascade="all, delete-orphan", lazy='dynamic')
+
+    serialize_rules = ('-hero_powers.hero', '-created_at', '-updated_at')
+
+    @validates('name', 'super_name')
+    def validate_names(self, key, value):
+        if not value or len(value.strip()) < 2:
+            raise ValueError(f"{key.replace('_', ' ').title()} must be at least 2 characters long")
+        return value.strip()
+
+    def __repr__(self):
+        return f'<Hero {self.id}: {self.name} ({self.super_name})>'
+
+class Power(db.Model, SerializerMixin):
+    __tablename__ = 'powers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    description = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    hero_powers = db.relationship('HeroPower', backref='power', cascade="all, delete-orphan", lazy='dynamic')
+
+    serialize_rules = ('-hero_powers.power', '-created_at', '-updated_at')
+
+    @validates('name')
+    def validate_name(self, key, name):
+        if not name or len(name.strip()) < 2:
+            raise ValueError("Power name must be at least 2 characters long")
+        return name.strip()
+
+    @validates('description')
+    def validate_description(self, key, description):
+        if not description or len(description.strip()) < 20:
+            raise ValueError("Description must be present and at least 20 characters long")
+        return description.strip()
+
+    def __repr__(self):
+        return f'<Power {self.id}: {self.name}>'
