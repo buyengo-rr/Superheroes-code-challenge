@@ -30,7 +30,8 @@ class User(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'<User {self.id}: {self.name}>'
-    class Hero(db.Model, SerializerMixin):
+
+class Hero(db.Model, SerializerMixin):
     __tablename__ = 'heroes'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -79,3 +80,31 @@ class Power(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'<Power {self.id}: {self.name}>'
+
+class HeroPower(db.Model, SerializerMixin):
+    __tablename__ = 'hero_powers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    strength = db.Column(db.String(20), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    hero_id = db.Column(db.Integer, db.ForeignKey('heroes.id', ondelete='CASCADE'), nullable=False)
+    power_id = db.Column(db.Integer, db.ForeignKey('powers.id', ondelete='CASCADE'), nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('hero_id', 'power_id', name='unique_hero_power'),
+        db.Index('idx_hero_power', 'hero_id', 'power_id'),
+    )
+
+    serialize_rules = ('-hero.hero_powers', '-power.hero_powers', '-created_at', '-updated_at')
+
+    @validates('strength')
+    def validate_strength(self, key, strength):
+        valid_strengths = ['Strong', 'Weak', 'Average']
+        if strength not in valid_strengths:
+            raise ValueError(f"Strength must be one of {valid_strengths}")
+        return strength
+
+    def __repr__(self):
+        return f'<HeroPower {self.id}: Hero ID {self.hero_id}, Power ID {self.power_id}, Strength: {self.strength}>'
