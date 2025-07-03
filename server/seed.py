@@ -1,50 +1,26 @@
-from random import choice as rc
-
+from random import choice as rc, randint, sample
 from app import app
-from models import db, Hero, Power, HeroPower
+from models import db, Hero, Power, HeroPower, User
 
-if __name__ == '__main__':
+def seed_database():
     with app.app_context():
-        print("Clearing db...")
-        Power.query.delete()
-        Hero.query.delete()
-        HeroPower.query.delete()
-
-        print("Seeding powers...")
-        powers = [
-            Power(name="super strength", description="gives the wielder super-human strengths"),
-            Power(name="flight", description="gives the wielder the ability to fly through the skies at supersonic speed"),
-            Power(name="super human senses", description="allows the wielder to use her senses at a super-human level"),
-            Power(name="elasticity", description="can stretch the human body to extreme lengths"),
-        ]
-
-        db.session.add_all(powers)
-
-        print("Seeding heroes...")
-        heroes = [
-            Hero(name="Kamala Khan", super_name="Ms. Marvel"),
-            Hero(name="Doreen Green", super_name="Squirrel Girl"),
-            Hero(name="Gwen Stacy", super_name="Spider-Gwen"),
-            Hero(name="Janet Van Dyne", super_name="The Wasp"),
-            Hero(name="Wanda Maximoff", super_name="Scarlet Witch"),
-            Hero(name="Carol Danvers", super_name="Captain Marvel"),
-            Hero(name="Jean Grey", super_name="Dark Phoenix"),
-            Hero(name="Ororo Munroe", super_name="Storm"),
-            Hero(name="Kitty Pryde", super_name="Shadowcat"),
-            Hero(name="Elektra Natchios", super_name="Elektra"),
-        ]
-
-        db.session.add_all(heroes)
-
-        print("Adding powers to heroes...")
-        strengths = ["Strong", "Weak", "Average"]
-        hero_powers = []
-        for hero in heroes:
-            power = rc(powers)
-            hero_powers.append(
-                HeroPower(hero=hero, power=power, strength=rc(strengths))
-            )
-        db.session.add_all(hero_powers)
+        print("Clearing database...")
+        db.session.query(HeroPower).delete()
+        db.session.query(Hero).delete()
+        db.session.query(Power).delete()
+        db.session.query(User).delete()
         db.session.commit()
 
-        print("Done seeding!")
+        print("Seeding users...")
+        users = [
+            User(name="Peter Parker", email="peter@dailybugle.com"),
+            User(name="Mary Jane Watson", email="mj@broadway.com"),
+            User(name="Tony Stark", email="tony@starkindustries.com"),
+            User(name="Pepper Potts", email="pepper@starkindustries.com"),
+            User(name="Bruce Banner", email="bruce@avengers.org"),
+            User(name="Natasha Romanoff", email="natasha@shield.gov"),
+            User(name="Steve Rogers", email="steve@avengers.org"),
+            User(name="Thor Odinson", email="thor@asgard.com"),
+        ]
+        db.session.add_all(users)
+        db.session.flush()
